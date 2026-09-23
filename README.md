@@ -528,15 +528,15 @@ JobScout will:
 
 1. Verify that Node.js is available.
 2. Validate the requested state.
-2. Start the appropriate state-specific Playwright scraper.
-3. Open the selected state's career website.
-4. Retrieve recent job postings.
-5. Visit the individual job pages.
-6. Extract job information.
-7. Apply the configured salary filter.
-8. Calculate relevance scores.
-9. Create local JSON output files.
-10. Update the configured Google Sheet.
+3. Start the appropriate state-specific Playwright scraper.
+4. Open the selected state's career website.
+5. Retrieve recent job postings.
+6. Visit the individual job pages.
+7. Extract job information.
+8. Apply the configured salary filter.
+9. Calculate relevance scores.
+10. Create local JSON output files.
+11. Update the configured Google Sheet.
 
 The browser window may be visible while Playwright is working. This is expected.
 
