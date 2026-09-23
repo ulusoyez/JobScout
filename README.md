@@ -7,69 +7,81 @@ Copyright © 2026 Ezgi Havsoy
 
 ## Overview
 
-JobScout is an automated job-monitoring tool that retrieves recently posted jobs, extracts information from individual job postings, filters positions according to user-defined criteria, scores jobs based on keyword relevance, and saves the results to Google Sheets.
+JobScout is a configurable, multi-state job-monitoring tool that retrieves recently posted jobs, extracts information from individual job postings, filters positions according to user-defined criteria, scores jobs based on keyword relevance, and saves the results to Google Sheets.
 
 The tool was originally developed to reduce the amount of repetitive manual work involved in monitoring new job postings and identifying positions that may be worth reviewing.
 
-The current version is designed for the **State of Minnesota Careers website**.
+JobScout currently supports the **State of Minnesota Careers website** and the **State of Illinois Careers website**. Its state-specific scraper architecture is designed to allow additional states to be added without requiring major changes to the overall workflow.
 
 ## What JobScout Does
 
 When JobScout runs, it:
 
-1. Opens the State of Minnesota Careers website.
+1. Opens the careers website for the selected state.
 2. Loads the available job postings.
 3. Identifies jobs posted within a user-defined number of recent days.
-4. Opens each recent job posting and extracts information including:
+4. Opens each recent job posting and extracts standardized job information, where available, including:
+   - State
    - Working title
    - Job class
    - Agency
    - Job ID
    - Location
-   - Telework eligibility
+   - Telework information
    - Posting and closing dates
    - Salary range
    - Job summary
+   - Essential functions or job responsibilities
    - Minimum qualifications
    - Preferred qualifications
    - Additional requirements
    - Physical requirements
-5. Removes jobs whose advertised salary range does not reach the user's configured salary threshold.
-6. Scores the remaining jobs using user-defined positive and negative keywords.
-7. Ranks the jobs by relevance score.
-8. Updates a Google Sheet containing:
-   - Recently scraped jobs
-   - Filtered jobs that meet the user's criteria
-9. Prevents previously recorded filtered jobs from being repeatedly added to the historical job list.
+   - Job posting URL
+5. Standardizes salary information into annual minimum and maximum values when the source data can be parsed.
+6. Removes jobs whose advertised maximum annual salary does not reach the user's configured salary threshold.
+7. Scores the remaining jobs using user-defined positive and negative keywords.
+8. Ranks the filtered jobs by relevance score.
+9. Updates a Google Sheet containing:
+   - Recent jobs for each state
+   - A cumulative history of filtered jobs that meet the user's criteria
+10. Prevents previously recorded filtered jobs from being repeatedly added by identifying jobs using the combination of state and Job ID.
+
+Because state career websites use different structures and terminology, some fields may not be available for every state or every posting.
 
 ## How It Works
 
 JobScout uses two programming environments:
 
 - **JavaScript / Node.js / Playwright** handles browser automation, job retrieval, page navigation, information extraction, filtering, and relevance scoring.
-- **R** manages the workflow and sends the resulting data to Google Sheets.
+- **R** manages the overall workflow, selects the state scraper, and sends the resulting data to Google Sheets.
+
+A central dispatcher selects the appropriate state-specific scraper based on the state requested by the user.
 
 The basic workflow is:
 
 ```text
-State of Minnesota Careers
-          ↓
-   Playwright scraper
-          ↓
-  Recent job postings
-          ↓
- Job-detail extraction
-          ↓
-    Salary filtering
-          ↓
-   Keyword scoring
-          ↓
-     JSON outputs
-          ↓
-      R processing
-          ↓
-     Google Sheets
+        Selected State
+              ↓
+       JobScout dispatcher
+              ↓
+    State-specific scraper
+              ↓
+      Recent job postings
+              ↓
+     Job-detail extraction
+              ↓
+       Salary filtering
+              ↓
+       Keyword scoring
+              ↓
+         JSON outputs
+              ↓
+        R processing
+              ↓
+        Google Sheets
 ```
+
+Each supported state has its own scraper because government careers websites differ in their page structure, navigation, field names, and salary formats. The state-specific scrapers convert those differences into a common set of JobScout output fields.
 
 ## Project Structure
 
@@ -81,13 +93,17 @@ JobScout/
 │   └── update_google_sheet.R
 │
 ├── Source/
-│   └── job_scraper.js
+│   ├── job_scraper.js
+│   └── scrapers/
+│       ├── minnesota.js
+│       └── illinois.js
 │
 ├── config/
 │   ├── config.example.json
 │   └── config.json
 │
 ├── .gitignore
+├── LICENSE
 ├── README.md
 ├── package.json
 └── package-lock.json
@@ -98,6 +114,8 @@ JobScout/
 `config.json` contains each user's personal JobScout settings and is intentionally excluded from GitHub.
 
 The repository includes `config.example.json` instead. Each user creates their own `config.json` from this example.
+
+Source/job_scraper.js acts as the dispatcher for the state-specific scrapers. The individual scraper files in Source/scrapers/ contain the website-specific retrieval and extraction logic.
 
 ---
 
@@ -161,7 +179,7 @@ This installs the packages listed in `package.json`, including Playwright.
 
 ### Install the Playwright Browser
 
-Playwright requires a browser installation in addition to the JavaScript package. JobScout uses Chromium to interact with the State of Minnesota Careers website.
+Playwright requires a browser installation in addition to the JavaScript package. JobScout uses Chromium to interact with the supported state careers websites.
 
 After installing the Node.js dependencies, run:
 
@@ -480,17 +498,38 @@ README.md
 
 ## Step 13: Run the Pipeline
 
-From the main JobScout directory, run:
+From the main JobScout directory, first load the JobScout runner:
 
 ```r
 source("R/Run_JobScout.R")
 ```
 
+Then specify the state you want to search.
+
+For Minnesota:
+
+```r
+run_jobscout(state = "minnesota")
+```
+
+For Illinois:
+
+```r
+run_jobscout(state = "illinois")
+```
+
+Minnesota is the default state, so the following is equivalent to run_jobscout(state = "minnesota"):
+
+```r
+run_jobscout()
+```
+
 JobScout will:
 
 1. Verify that Node.js is available.
-2. Start the Playwright scraper.
-3. Open the State of Minnesota Careers website.
+2. Validate the requested state.
+2. Start the appropriate state-specific Playwright scraper.
+3. Open the selected state's career website.
 4. Retrieve recent job postings.
 5. Visit the individual job pages.
 6. Extract job information.
@@ -501,25 +540,33 @@ JobScout will:
 
 The browser window may be visible while Playwright is working. This is expected.
 
+To search another supported state, run run_jobscout() again with the other state's name.
+
 ---
 
 # Understanding the Results
 
 ## Recent Jobs
 
-The `Recent Jobs` worksheet is replaced during each run.
+The `Recent Jobs` worksheet contains the most recently scraped jobs for each state.
 
-It represents the recent job postings examined during the current JobScout run.
+When JobScout runs for a state, the previous recent-job records for that state are replaced with the current results while recent-job records for other states are preserved.
+
+For example, running Illinois updates the Illinois records without removing the most recent Minnesota records.
+
+This worksheet is therefore intended to represent the latest available JobScout search for each state rather than a cumulative history of every recent job ever retrieved.
 
 ## Filtered Jobs
 
 The `Filtered Jobs` worksheet functions as a cumulative history.
 
-JobScout compares the current filtered results with jobs already stored in the worksheet using the Job ID.
+JobScout compares the current filtered results with jobs already stored in the worksheet using the combination of `state` and `job_id`.
 
-Only jobs that are not already present are added.
+Only jobs whose state and Job ID combination is not already present are added.
 
-This allows the worksheet to function as an ongoing record of potentially relevant opportunities.
+Using both fields allows JobScout to distinguish jobs from different state systems even if those systems happen to use the same Job ID.
+
+This allows the worksheet to function as an ongoing record of potentially relevant opportunities across supported states.
 
 ## Relevance Score
 
@@ -621,33 +668,44 @@ Make sure:
 
 ## JobScout stops while navigating job postings
 
-The State of Minnesota Careers website can change over time. JobScout relies on the website's current page structure and text labels, so changes to that website may require updates to the scraper.
+State careers websites can change over time. JobScout relies on each website's current page structure, navigation behavior, and text labels, so changes to a supported website may require updates to its state-specific scraper.
+
+If the problem occurs only for one state, the corresponding file in `Source/scrapers/` is the most likely location requiring an update.
 
 ## Human Verification Appears
 
-Occasionally, the State of Minnesota Careers website may display a human verification or bot-detection check when JobScout opens the site.
+Occasionally, a supported careers website may display a human verification or bot-detection check when JobScout opens the site.
 
 If this occurs:
 
 1. Complete the verification manually in the browser window opened by JobScout.
 2. Allow the website to finish loading.
-3. JobScout should then be able to continue with the job search.
+3. JobScout may then be able to continue with the job search.
 
-This behavior is controlled by the State of Minnesota Careers website and may occur inconsistently. It does not necessarily indicate a problem with the JobScout installation.
+This behavior is controlled by the external careers website and may occur inconsistently. JobScout is not designed to bypass human-verification or bot-detection protections.
 
 ---
 
 # Current Scope and Limitations
 
-JobScout is currently designed specifically for the State of Minnesota Careers website.
+JobScout currently supports:
 
-Because JobScout relies on the structure and behavior of an external website, changes to the State of Minnesota Careers website may affect the scraper or require updates to the extraction process.
+- **Minnesota** — State of Minnesota Careers
+- **Illinois** — State of Illinois Careers
 
-In some cases, the State of Minnesota Careers website may display a **human verification or bot-detection check** when JobScout first opens the site. This occurs only occasionally. If a verification prompt appears, the user must complete it manually in the browser before JobScout can continue. JobScout is not designed to bypass these protections.
+Support is implemented separately for each state because the underlying careers websites use different page structures, navigation systems, field labels, and salary formats.
+
+The project is structured so that additional state-specific scrapers can be added over time, but a state is not supported merely because JobScout has a multi-state architecture. Each new careers website requires its own extraction logic and testing.
+
+Because JobScout relies on external websites, changes to a supported website may affect the corresponding scraper or require updates to the extraction process.
+
+Not every careers website provides the same information. JobScout uses a standardized output structure where practical, but some fields may be unavailable for particular states or postings and may therefore be blank.
+
+Some supported websites may occasionally display a **human verification or bot-detection check**. If a verification prompt appears, the user must complete it manually in the browser before JobScout can continue. JobScout is not designed to bypass these protections.
 
 The relevance score is based on keyword occurrence. It should therefore be treated as a prioritization mechanism rather than a comprehensive assessment of job fit.
 
-Salary filtering depends on JobScout being able to identify and parse an annual salary range from the job posting.
+Salary filtering depends on JobScout being able to identify and parse salary information from the job posting. Salary formats differ across state systems, and some postings may not contain salary information that can be reliably standardized.
 
 ---
 
@@ -655,13 +713,13 @@ Salary filtering depends on JobScout being able to identify and parse an annual 
 
 JobScout was developed as a personal, noncommercial automation project for monitoring publicly available job postings.
 
-The project retrieves information made publicly available through the State of Minnesota Careers website. It does not submit job applications, modify information on the State of Minnesota website, or access non-public areas of the site.
+The project retrieves information made publicly available through supported government careers websites. It does not submit job applications, modify information on those websites, or access non-public areas of the sites.
 
-JobScout relies on an external website that is not controlled by the developer. Users are responsible for ensuring that their use of the software complies with applicable website terms, policies, and laws.
+JobScout relies on external websites that are not controlled by the developer. Users are responsible for ensuring that their use of the software complies with applicable website terms, policies, and laws.
 
-The State of Minnesota Careers website may occasionally require human verification. JobScout is not designed to bypass these protections. If verification is requested, the user must complete it manually before the automated process can continue.
+Supported careers websites may occasionally require human verification. JobScout is not designed to bypass these protections. If verification is requested, the user must complete it manually before the automated process can continue.
 
-This project is provided for informational and educational purposes and is not affiliated with, endorsed by, or maintained by the State of Minnesota.
+This project is provided for informational and educational purposes and is not affiliated with, endorsed by, or maintained by the State of Minnesota, the State of Illinois, or their respective agencies.
 
 ---
 

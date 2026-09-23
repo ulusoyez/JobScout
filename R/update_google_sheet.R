@@ -59,11 +59,39 @@ filtered_jobs <- filtered_jobs %>%
   select(-page_text)
 
 #########################################################
-# Replace Recent Jobs sheet
+# Update Recent Jobs sheet
 #########################################################
 
+existing_recent <- read_sheet(
+  ss = sheet_id,
+  sheet = "Recent Jobs"
+)
+
+if (nrow(existing_recent) == 0) {
+  updated_recent <- recent_jobs
+} else {
+  if (!"state" %in% names(existing_recent)) {
+    stop(
+      "The 'Recent Jobs' sheet does not contain a 'state' column. ",
+      "Clear the sheet and run JobScout again."
+    )
+  }
+  
+  current_state <- unique(recent_jobs$state)
+  
+  if (length(current_state) != 1) {
+    stop(
+      "Recent jobs must contain exactly one state per JobScout run."
+    )
+  }
+  
+  updated_recent <- existing_recent %>%
+    filter(state != current_state) %>%
+    bind_rows(recent_jobs)
+}
+
 sheet_write(
-  data = recent_jobs,
+  data = updated_recent,
   ss = sheet_id,
   sheet = "Recent Jobs"
 )
@@ -83,9 +111,12 @@ existing_filtered <- read_sheet(
 # Validate existing sheet structure
 #########################################################
 
-if (nrow(existing_filtered) > 0 && !"job_id" %in% names(existing_filtered)) {
+required_id_columns <- c("state", "job_id")
+
+if (nrow(existing_filtered) > 0 &&
+    !all(required_id_columns %in% names(existing_filtered))) {
   stop(
-    "The 'Filtered Jobs' sheet does not contain a 'job_id' column. ",
+    "The 'Filtered Jobs' sheet must contain both 'state' and 'job_id' columns. ",
     "JobScout stopped without adding jobs to prevent duplicate records."
   )
 }
@@ -98,8 +129,10 @@ if (nrow(existing_filtered) == 0) {
   new_jobs <- filtered_jobs
 } else {
   new_jobs <- filtered_jobs %>%
-    filter(
-      !job_id %in% existing_filtered$job_id
+    anti_join(
+      existing_filtered %>%
+        select(state, job_id),
+      by = c("state", "job_id")
     )
 }
 
