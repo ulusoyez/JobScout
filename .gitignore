@@ -1,0 +1,35 @@
+# JobScout - Files excluded from version control
+
+# Private user configuration
+config/config.json
+
+# Generated job data
+recent_jobs.json
+job_details.json
+filtered_jobs.json
+jobs.json
+navigation_test.json
+
+# Generated/debugging HTML
+jobs.html
+job_detail.html
+
+# Node dependencies
+node_modules/
+
+# Environment variables and credentials
+.env
+.Renviron
+.httr-oauth
+credentials/
+secrets/
+
+# R session files
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Operating system files
+.DS_Store
+Thumbs.db

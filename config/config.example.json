@@ -1,0 +1,58 @@
+{
+  "recent_days": 7,
+  "minimum_salary": 80000,
+
+  "positive_keywords": {
+    "10": [
+      "data analyst",
+      "statistical analyst",
+      "research analyst",
+      "business intelligence analyst",
+      "data scientist",
+      "quantitative analyst"
+    ],
+
+    "5": [
+      "SQL",
+      "Python",
+      "R programming",
+      "statistical analysis",
+      "data analysis",
+      "data visualization",
+      "machine learning",
+      "predictive modeling",
+      "database",
+      "ETL",
+      "Power BI",
+      "Tableau"
+    ],
+
+    "2": [
+      "analytics",
+      "statistics",
+      "dashboard",
+      "reporting",
+      "data management",
+      "data quality",
+      "automation",
+      "Git",
+      "API"
+    ]
+  },
+
+  "negative_keywords": {
+    "-10": [
+      "registered nurse",
+      "physician",
+      "licensed practical nurse",
+      "social worker"
+    ],
+
+    "-5": [
+      "electrician",
+      "mechanic",
+      "custodian",
+      "correctional officer"
+    ]
+  }
+}

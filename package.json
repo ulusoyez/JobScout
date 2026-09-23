@@ -1,0 +1,22 @@
+{
+  "name": "jobscout",
+  "version": "1.0.0",
+  "description": "Automated job monitoring and relevance filtering for State of Minnesota Careers.",
+  "main": "Source/job_scraper.js",
+  "scripts": {
+    "start": "node Source/job_scraper.js"
+  },
+  "keywords": [
+    "job-search",
+    "automation",
+    "playwright",
+    "web-scraping",
+    "job-monitoring"
+  ],
+  "author": "Ezgi Havsoy, PhD",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "playwright": "^1.61.1"
+  }
+}
