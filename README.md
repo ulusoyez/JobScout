@@ -11,7 +11,7 @@ JobScout is a configurable, multi-state job-monitoring tool that retrieves recen
 
 The tool was originally developed to reduce the amount of repetitive manual work involved in monitoring new job postings and identifying positions that may be worth reviewing.
 
-JobScout currently supports the **State of Minnesota Careers website** and the **State of Illinois Careers website**. Its state-specific scraper architecture is designed to allow additional states to be added without requiring major changes to the overall workflow.
+JobScout currently supports the **State of Minnesota Careers website**, the **State of Illinois Careers website** and the **State of Michigan Careers website**. Its state-specific scraper architecture is designed to allow additional states to be added without requiring major changes to the overall workflow.
 
 ## What JobScout Does
 
@@ -98,6 +98,7 @@ JobScout/
 │   └── scrapers/
 │       ├── minnesota.js
 │       └── illinois.js
+│       └── michigan.js
 │
 ├── config/
 │   ├── config.example.json
@@ -541,6 +542,12 @@ For Illinois:
 run_jobscout(state = "illinois")
 ```
 
+For Michigan:
+
+```r
+run_jobscout(state = "michigan")
+```
+
 Minnesota is the default state, so the following is equivalent to run_jobscout(state = "minnesota"):
 
 ```r
@@ -713,8 +720,9 @@ This behavior is controlled by the external careers website and may occur incons
 
 JobScout currently supports:
 
-- **Minnesota** — State of Minnesota Careers
-- **Illinois** — State of Illinois Careers
+- **Minnesota** - State of Minnesota Careers
+- **Illinois** - State of Illinois Careers
+- **Michigan** - State of Michigan Careers 
 
 Support is implemented separately for each state because the underlying careers websites use different page structures, navigation systems, field labels, and salary formats.
 
@@ -742,7 +750,7 @@ JobScout relies on external websites that are not controlled by the developer. U
 
 Supported careers websites may occasionally require human verification. JobScout is not designed to bypass these protections. If verification is requested, the user must complete it manually before the automated process can continue.
 
-This project is provided for informational and educational purposes and is not affiliated with, endorsed by, or maintained by the State of Minnesota, the State of Illinois, or their respective agencies.
+This project is provided for informational and educational purposes and is not affiliated with, endorsed by, or maintained by the State of Minnesota, the State of Illinois, the State of Michigan or their respective agencies.
 
 ---
 

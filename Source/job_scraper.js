@@ -28,7 +28,8 @@ const state = stateArgIndex !== -1
 // Add additional state scrapers to this list as they are implemented.
 const scrapers = {
     minnesota: "./scrapers/minnesota.js",
-    illinois: "./scrapers/illinois.js"
+    illinois: "./scrapers/illinois.js",
+    michigan: "./scrapers/michigan.js"
 };
 
 if (!scrapers[state]) {

@@ -19,7 +19,8 @@ run_jobscout <- function(state = "minnesota") {
   # Add additional states to this list as they are implemented.
   supported_states <- c(
     "minnesota",
-    "illinois")
+    "illinois",
+    "michigan")
   
   if (!state %in% supported_states) {
     stop(
