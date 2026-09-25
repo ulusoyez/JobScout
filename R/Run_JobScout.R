@@ -19,16 +19,13 @@ run_jobscout <- function(state = "minnesota") {
   # Add additional states to this list as they are implemented.
   supported_states <- c(
     "minnesota",
-    "illinois"
-  )
+    "illinois")
   
   if (!state %in% supported_states) {
     stop(
       "Unsupported state: ", state,
       ". Supported states are: ",
-      paste(supported_states, collapse = ", ")
-    )
-  }
+      paste(supported_states, collapse = ", "))}
   
   cat("=====================================\n")
   cat("JobScout started:", as.character(Sys.time()), "\n")
@@ -44,9 +41,7 @@ run_jobscout <- function(state = "minnesota") {
   if (node == "") {
     stop(
       "Node.js could not be found. ",
-      "Please install Node.js and make sure it is available on your system PATH."
-    )
-  }
+      "Please install Node.js and make sure it is available on your system PATH.")}
   
   cat("Node.js found:", node, "\n")
   
@@ -59,11 +54,9 @@ run_jobscout <- function(state = "minnesota") {
     args = c(
       "Source/job_scraper.js",
       "--state",
-      state
-    ),
+      state),
     echo = TRUE,
-    error_on_status = TRUE
-  )
+    error_on_status = TRUE)
   
   ################################################################
   # Update Google Sheets

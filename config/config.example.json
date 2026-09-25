@@ -1,6 +1,10 @@
 {
   "recent_days": 7,
   "minimum_salary": 80000,
+  
+    "title_keywords": [
+    "analyst"
+  ],
 
   "positive_keywords": {
     "10": [

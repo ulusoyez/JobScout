@@ -113,8 +113,7 @@ const recentJobs = jobs.filter(job => {
     const postedDate = new Date(year, month - 1, day);
     const diffDays = (today - postedDate) / (1000 * 60 * 60 * 24);
 
-    return diffDays < config.recent_days;
-  
+    return diffDays < config.recent_days; 
 });
 
 console.log(`Found ${recentJobs.length} recent jobs.`);
@@ -124,6 +123,25 @@ fs.writeFileSync(
     JSON.stringify(recentJobs, null, 2));
 
 console.log("Saved recent_jobs.json");
+
+
+function matchesTitleClass(job) {
+
+    const keywords = config.title_keywords || [];
+
+    // Empty list means no title/class filtering
+    if (keywords.length === 0) return true;
+
+    const titleClassText = [
+        job.working_title,
+        job.job_class]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+    return keywords.some(keyword =>
+        titleClassText.includes(keyword.toLowerCase()))
+        ;}
 
 const positiveKeywords = config.positive_keywords;
 const negativeKeywords = config.negative_keywords;
@@ -155,9 +173,7 @@ function scoreJob(job) {
                     keyword,
                     points: Number(points)
                 });
-            }
-        }
-    }
+            }}}
 
     // Negative keywords
     for (const [points, keywords] of Object.entries(negativeKeywords)) {
@@ -168,9 +184,7 @@ function scoreJob(job) {
                     keyword,
                     points: Number(points)
                 });
-            }
-        }
-    }
+            }}}
 
     return {
         ...job,
@@ -329,7 +343,8 @@ const MIN_SALARY = config.minimum_salary;
 
 const filteredJobs = visited.filter(job =>
     job.salary_max !== null &&
-    job.salary_max >= MIN_SALARY);
+    job.salary_max >= MIN_SALARY&&
+    matchesTitleClass(job));
 
 console.log("Scoring...");
 
@@ -342,7 +357,7 @@ fs.writeFileSync(
     JSON.stringify(scoredJobs, null, 2));
 
 console.log(
-    `Saved ${scoredJobs.length} jobs with salary >= $${MIN_SALARY.toLocaleString()}.`);
+    `Saved ${scoredJobs.length} jobs meeting salary and title/class criteria.`);
     
 console.log("Report complete.");
 

@@ -7,7 +7,7 @@ Copyright © 2026 Ezgi Havsoy
 
 ## Overview
 
-JobScout is a configurable, multi-state job-monitoring tool that retrieves recently posted jobs, extracts information from individual job postings, filters positions according to user-defined criteria, scores jobs based on keyword relevance, and saves the results to Google Sheets.
+JobScout is a configurable, multi-state job-monitoring tool that retrieves recently posted jobs, extracts information from individual job postings, filters positions according to user-defined criteria, scores jobs based on keyword relevance, and saves the results to Google Sheets. The filtering criteria can include salary requirements and optional keywords that must appear in a job's working title or job class.
 
 The tool was originally developed to reduce the amount of repetitive manual work involved in monitoring new job postings and identifying positions that may be worth reviewing.
 
@@ -39,12 +39,13 @@ When JobScout runs, it:
    - Job posting URL
 5. Standardizes salary information into annual minimum and maximum values when the source data can be parsed.
 6. Removes jobs whose advertised maximum annual salary does not reach the user's configured salary threshold.
-7. Scores the remaining jobs using user-defined positive and negative keywords.
-8. Ranks the filtered jobs by relevance score.
-9. Updates a Google Sheet containing:
+7. Optionally filters jobs based on keywords found in the working title or job class.
+8. Scores the remaining jobs using user-defined positive and negative keywords.
+9. Ranks the filtered jobs by relevance score.
+10. Updates a Google Sheet containing:
    - Recent jobs for each state
    - A cumulative history of filtered jobs that meet the user's criteria
-10. Prevents previously recorded filtered jobs from being repeatedly added by identifying jobs using the combination of state and Job ID.
+11. Prevents previously recorded filtered jobs from being repeatedly added by identifying jobs using the combination of state and Job ID.
 
 Because state career websites use different structures and terminology, some fields may not be available for every state or every posting.
 
@@ -126,7 +127,8 @@ Source/job_scraper.js acts as the dispatcher for the state-specific scrapers. Th
 Clone this repository using Git:
 
 ```bash
-git clone YOUR-REPOSITORY-URL
+git clone https://github.com/ulusoyez/JobScout.git 
+cd JobScout
 ```
 
 Alternatively, use GitHub's **Code → Download ZIP** option and extract the folder to your computer.
@@ -279,6 +281,8 @@ The configuration contains settings similar to:
 {
   "recent_days": 7,
   "minimum_salary": 80000,
+  
+  "title_keywords": ["analyst"],
 
   "positive_keywords": {
     "10": [
@@ -355,6 +359,26 @@ With this setting:
 
 Therefore, `minimum_salary` does **not** require the starting salary to be at least the specified amount. It is used to exclude positions whose **entire advertised salary range falls below the user's salary threshold**.
 
+### `title_keywords`
+
+Optionally filters jobs based on terms found in either the **working title** or **job class**.
+
+For example:
+
+```json
+"title_keywords": ["analyst"]
+```
+
+A job is retained when at least one of the configured terms appears in either its working title or job class. Matching is case-insensitive and uses partial text matching.
+
+For example, `"analyst"` would match titles or job classes such as `Research Analyst`, `Data Analyst`, or `Senior Business Analyst`.
+
+To disable title filtering and retain jobs regardless of their working title or job class, use an empty list:
+
+```json
+"title_keywords": []
+```
+
 ### `positive_keywords`
 
 Positive keywords increase a job's relevance score.
@@ -364,8 +388,7 @@ For example:
 ```json
 "10": [
   "data analyst",
-  "statistical analyst"
-]
+  "statistical analyst"]
 ```
 
 adds 10 points when one of those phrases is found in the job information examined by JobScout.
@@ -728,8 +751,6 @@ This project is provided for informational and educational purposes and is not a
 **Ezgi Havsoy, PhD**
 
 JobScout was created and developed by Ezgi Havsoy as an automation tool for monitoring, filtering, and organizing job opportunities.
-
-If you share or adapt this project, please retain attribution to the original author.
 
 Copyright © 2026 Ezgi Havsoy.
 
